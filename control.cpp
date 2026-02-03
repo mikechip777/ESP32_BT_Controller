@@ -20,6 +20,8 @@
    - LED indicator
    - Buzzer
    - Digital event outputs
+   - 6 digital switch outputs
+   - 4 digital event outputs
 
   This file NEVER handles Bluetooth or packet parsing.
 
@@ -40,6 +42,8 @@
    - LED indicador
    - Buzzer
    - Salidas digitales por evento
+   - 6 salidas por switches
+   - 4 salidas por eventos
 */
 
 #include <Arduino.h>
@@ -56,6 +60,13 @@
 #define PIN_MOTOR_R       21
 #define PIN_LED           2
 #define PIN_BUZZER        27
+// SWITCH OUTPUTS (from switch byte)
+#define PIN_SW1  32
+#define PIN_SW2  33
+#define PIN_SW3  25
+#define PIN_SW4  26
+#define PIN_SW5  4
+#define PIN_SW6  5
 
 #define PIN_EVT_1         12
 #define PIN_EVT_2         13
@@ -100,6 +111,14 @@ static uint32_t mapMotor(uint16_t v) {
    ===================================================== */
 
 void controlInit() {
+
+    // Switch outputs
+  pinMode(PIN_SW1, OUTPUT);
+  pinMode(PIN_SW2, OUTPUT);
+  pinMode(PIN_SW3, OUTPUT);
+  pinMode(PIN_SW4, OUTPUT);
+  pinMode(PIN_SW5, OUTPUT);
+  pinMode(PIN_SW6, OUTPUT);
 
   // Digital outputs for event buttons
   pinMode(PIN_EVT_1, OUTPUT);
@@ -146,10 +165,12 @@ void controlUpdate() {
 
   byte sw = rcStatePacket.data.switches;
 
-  digitalWrite(PIN_EVT_1, sw & (1 << 0));
-  digitalWrite(PIN_EVT_2, sw & (1 << 1));
-  digitalWrite(PIN_EVT_3, sw & (1 << 2));
-  digitalWrite(PIN_EVT_4, sw & (1 << 3));
+  digitalWrite(PIN_SW1, sw & (1 << 0));
+  digitalWrite(PIN_SW2, sw & (1 << 1));
+  digitalWrite(PIN_SW3, sw & (1 << 2));
+  digitalWrite(PIN_SW4, sw & (1 << 3));
+  digitalWrite(PIN_SW5, sw & (1 << 4));
+  digitalWrite(PIN_SW6, sw & (1 << 5));
 }
 
 /* =====================================================
@@ -158,14 +179,12 @@ void controlUpdate() {
    ===================================================== */
 
 void controlHandleEvent(byte eventId) {
-
+  
   switch (eventId) {
-
-    case 0x01: digitalWrite(PIN_EVT_1, HIGH); break;
-    case 0x02: digitalWrite(PIN_EVT_2, HIGH); break;
-    case 0x03: digitalWrite(PIN_EVT_3, HIGH); break;
-    case 0x04: digitalWrite(PIN_EVT_4, HIGH); break;
-
+    case 0x01: digitalWrite(PIN_EVT_1, HIGH); delay(50); digitalWrite(PIN_EVT_1, LOW); break;
+    case 0x02: digitalWrite(PIN_EVT_2, HIGH); delay(50); digitalWrite(PIN_EVT_2, LOW); break;
+    case 0x03: digitalWrite(PIN_EVT_3, HIGH); delay(50); digitalWrite(PIN_EVT_3, LOW); break;
+    case 0x04: digitalWrite(PIN_EVT_4, HIGH); delay(50); digitalWrite(PIN_EVT_4, LOW); break;
     default: break;
   }
 }
