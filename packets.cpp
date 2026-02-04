@@ -33,3 +33,7 @@ const int INDICATOR_PACKET_SIZE = sizeof(IndicatorPacket);
 
 PlotPacket plotPacket;
 const int PLOT_PACKET_SIZE = sizeof(PlotPacket);
+
+InputPacket inputPacket;
+
+I2CPacket i2cPacket;

@@ -30,6 +30,8 @@
 */
 #ifndef PACKETS_H
 #define PACKETS_H
+#define INPUT_PACKET_SIZE 13
+#define I2C_PACKET_SIZE 14
 
 #include <Arduino.h>
 
@@ -87,4 +89,32 @@ typedef struct __attribute__((packed)) {
 extern PlotPacket plotPacket;
 extern const int PLOT_PACKET_SIZE;
 
+
+typedef struct {
+  byte h1;      // 0xCC
+  byte h2;      // 0x55
+  uint16_t a34;
+  uint16_t a35;
+  uint16_t a36;
+  uint16_t a39;
+  byte d0;
+  byte d16;
+  byte d17;
+  byte checksum;
+} InputPacket;
+
+extern InputPacket inputPacket;
+
+typedef struct {
+  byte h1;     // 0xCC
+  byte h2;     // 0x66
+  uint16_t temp;
+  uint16_t ax;
+  uint16_t ay;
+  uint16_t az;
+  byte sensorFlags;
+  byte checksum;
+} I2CPacket;
+
+extern I2CPacket i2cPacket;
 #endif

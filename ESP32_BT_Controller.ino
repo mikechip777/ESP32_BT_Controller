@@ -36,6 +36,8 @@
 #include "receiver.h"
 #include "debug.h"
 #include "control.h"
+#include "input.h"
+#include "i2c_sensors.h"
 
 void setup() {
   Serial.begin(115200);
@@ -47,10 +49,13 @@ void setup() {
   Serial.printf("Listening for State (%d) and Event (%d)\n",
                 STATE_PACKET_SIZE, EVENT_PACKET_SIZE);
   controlInit();
+  i2cInit();
 }
 
 void loop() {
   handleBluetooth();
   sendTelemetryIfDue();
   controlUpdate();
+  inputUpdate();
+  sendI2CTelemetry();
 }
