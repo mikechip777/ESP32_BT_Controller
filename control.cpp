@@ -266,15 +266,19 @@ void controlUpdate() {
 /* =====================================================
    EVENT HANDLING
    ===================================================== */
-
+void pulse(uint8_t pin, uint16_t durationMs = 50) {
+    digitalWrite(pin, HIGH);
+    delay(durationMs);
+    digitalWrite(pin, LOW);
+}
 void controlHandleEvent(byte eventId) {
 
   switch (eventId) {
 
-    case 0x01: digitalWrite(PIN_EVT1, HIGH); delay(50); digitalWrite(PIN_EVT1, LOW); break;
-    case 0x02: digitalWrite(PIN_EVT2, HIGH); delay(50); digitalWrite(PIN_EVT2, LOW); break;
-    case 0x03: digitalWrite(PIN_EVT3, HIGH); delay(50); digitalWrite(PIN_EVT3, LOW); break;
-    case 0x04: digitalWrite(PIN_EVT4, HIGH); delay(50); digitalWrite(PIN_EVT4, LOW); break;
+    case 0x01: pulse(PIN_EVT1); break;
+    case 0x02: pulse(PIN_EVT2); break;
+    case 0x03: pulse(PIN_EVT3); break;
+    case 0x04: pulse(PIN_EVT4); break;
 
     default: break;
   }
