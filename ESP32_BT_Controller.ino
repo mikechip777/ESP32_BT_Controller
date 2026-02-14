@@ -58,4 +58,5 @@ void loop() {
   controlUpdate();
   inputUpdate();
   sendI2CTelemetry();
+  printEventPacket();
 }
