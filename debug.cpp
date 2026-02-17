@@ -12,70 +12,103 @@
   Este archivo NUNCA maneja Bluetooth ni memoria.
 */
 #include "debug.h"
+#include "packets.h"
+#include "debug_config.h"
 // Incluye prototipos y variables globales
 
+/* ---------- LAST VALUES ---------- */
+static uint16_t lastLX = 0;
+static uint16_t lastLY = 0;
+static uint16_t lastRX = 0;
+static uint16_t lastRY = 0;
 
-// ----------------------------------------------------
-// printStatePacket()
-// Imprime el último paquete RC recibido
-// ----------------------------------------------------
-void printStatePacket() {
+static uint16_t lastKnobL = 0;
+static uint16_t lastKnobR = 0;
 
-  Serial.println("\n--- RC STATE PACKET ---");
-  // Separador visual
+static uint8_t lastEventId = 0;
 
-  Serial.printf("L Stick: X=%u  Y=%u\n",
-                rcStatePacket.data.leftStickX,
-                rcStatePacket.data.leftStickY);
-  // Joystick izquierdo
+static byte lastSwitches = 0xFF;
 
-  Serial.printf("R Stick: X=%u  Y=%u\n",
-                rcStatePacket.data.rightStickX,
-                rcStatePacket.data.rightStickY);
-  // Joystick derecho
-
-  Serial.printf("Knobs:   L=%u  R=%u\n",
-                rcStatePacket.data.leftKnob,
-                rcStatePacket.data.rightKnob);
-  // Perillas analógicas
-
-  byte s = rcStatePacket.data.switches;
-  // Guarda los interruptores
-
-  Serial.printf("Switch Byte: 0x%02X\n", s);
-  // Muestra en hexadecimal
-
-  for (int i = 0; i < 6; i++) {
-    Serial.printf("  S%d = %s\n",
-                  i + 1,
-                  (s & (1 << i)) ? "ON" : "OFF");
+/* ---------- STICKS ---------- */
+#if DBG_STICKS
+void debugStickLX() {
+  uint16_t x = rcStatePacket.data.leftStickX;
+  uint16_t y = rcStatePacket.data.leftStickY;
+  if (x != lastLX) {
+    Serial.printf("L Stick X: %u    ", x);
+    Serial.printf("L Stick Y: %u\n", y);
+    lastLX = x;
   }
-  // Decodifica cada bit
-
-  Serial.printf("Checksum: %u\n", rcStatePacket.data.checksum);
-  // Muestra checksum
-
-  Serial.println("------------------------");
 }
 
-
-// ----------------------------------------------------
-// printEventPacket()
-// Imprime paquete de evento
-// ----------------------------------------------------
-void printEventPacket() {
-
-  Serial.println("\n--- EVENT PACKET ---");
-
-  Serial.printf("Event ID: 0x%02X\n", rcEventPacket.data.eventId);
-  // ID del evento
-
-  Serial.printf("Checksum: 0x%02X\n", rcEventPacket.data.checksum);
-  // Checksum en hex
-
-  Serial.println("---------------------");
+void debugStickLY() {
+  uint16_t y = rcStatePacket.data.leftStickY;
+  uint16_t x = rcStatePacket.data.leftStickX;
+  if (y != lastLY) {
+    Serial.printf("L Stick X: %u    ", x);
+    Serial.printf("L Stick Y: %u\n", y);
+    lastLY = y;
+  }
 }
 
+void debugStickRX() {
+  uint16_t x = rcStatePacket.data.rightStickX;
+  uint16_t y = rcStatePacket.data.rightStickY;
+  if (x != lastRX) {
+    Serial.printf("R Stick X: %u    ", x);
+    Serial.printf("R Stick Y: %u\n", y);
+    lastRX = x;
+  }
+}
+
+void debugStickRY() {
+  uint16_t y = rcStatePacket.data.rightStickY;
+  uint16_t x = rcStatePacket.data.rightStickX;
+  if (y != lastRY) {
+    Serial.printf("R Stick X: %u    ", x);
+    Serial.printf("R Stick Y: %u\n", y);
+    lastRY = y;
+  }
+}
+#endif
+
+/* ---------- KNOBS ---------- */
+#if DBG_KNOBS
+void debugKnobL() {
+  uint16_t v = rcStatePacket.data.leftKnob;
+  if (v != lastKnobL) {
+    Serial.printf("Left Knob: %u\n", v);
+    lastKnobL = v;
+  }
+}
+
+void debugKnobR() {
+  uint16_t v = rcStatePacket.data.rightKnob;
+  if (v != lastKnobR) {
+    Serial.printf("Right Knob: %u\n", v);
+    lastKnobR = v;
+  }
+}
+#endif
+
+/* ---------- SWITCHES ---------- */
+#if DBG_SWITCHES
+void debugSwitches() {
+  byte s = rcStatePacket.data.switches;
+
+  if (s != lastSwitches) {
+    Serial.printf("Switch Byte: 0x%02X\n", s);
+
+    for (int i = 0; i < 6; i++) {
+      Serial.printf("  S%d = %s\n",
+        i + 1,
+        (s & (1 << i)) ? "ON" : "OFF");
+    }
+
+    lastSwitches = s;
+  }
+}
+#endif
 
 // ----------------------------------------------------
 // printPanelPacket()
@@ -115,22 +148,3 @@ void printIndicatorPacket() {
 }
 
 
-// ----------------------------------------------------
-// printPlotPacket()
-// Imprime valores de gráficos
-// ----------------------------------------------------
-void printPlotPacket() {
-
-  Serial.println("\n--- PLOT TELEMETRY ---");
-
-  Serial.printf("Plots: %u\n", plotPacket.numPlots);
-  // Cantidad de valores
-
-  Serial.printf("P1=%u  P2=%u  P3=%u\n",
-                plotPacket.plotValue1,
-                plotPacket.plotValue2,
-                plotPacket.plotValue3);
-  // Valores
-
-  Serial.printf("Checksum: %u\n", plotPacket.checksum);
-}

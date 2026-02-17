@@ -38,6 +38,7 @@
 #include "control.h"
 #include "input.h"
 #include "i2c_sensors.h"
+#include "debug_config.h"
 
 void setup() {
   Serial.begin(115200);
@@ -58,6 +59,26 @@ void loop() {
   controlUpdate();
   inputUpdate();
   sendI2CTelemetry();
-  printEventPacket();
-  printStatePacket();
+
+#if DBG_STICKS
+  debugStickLX();
+  debugStickLY();
+  debugStickRX();
+  debugStickRY();
+#endif
+
+#if DBG_EVENTS
+  printEventPacketOnPress();
+#endif
+
+
+#if DBG_KNOBS
+  debugKnobL();
+  debugKnobR();
+#endif
+
+#if DBG_SWITCHES
+  debugSwitches();
+#endif
+
 }

@@ -37,3 +37,5 @@ const int PLOT_PACKET_SIZE = sizeof(PlotPacket);
 InputPacket inputPacket;
 
 I2CPacket i2cPacket;
+
+volatile bool eventPacketArrived = false;

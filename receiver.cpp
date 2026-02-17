@@ -30,7 +30,7 @@
 #include "bluetooth.h"
 #include "packets.h"
 #include "receiver.h"
-#include "debug.h"
+//#include "debug.h"
 #include "control.h"
 
 #define RX_BUFFER_SIZE 64
@@ -80,13 +80,14 @@ void handleBluetooth() {
 
     if (packetType == 1) {
         memcpy(rcStatePacket.bytes, &buffer[packetStart], STATE_PACKET_SIZE);
-        Serial.println("State packet received");
-        printStatePacket();
+   //     Serial.println("State packet received");
+   //     printStatePacket();
     }
     else if (packetType == 2) {
         memcpy(rcEventPacket.bytes, &buffer[packetStart], EVENT_PACKET_SIZE);
-        Serial.println("Event packet received");
-        printEventPacket();
+   //     Serial.println("Event packet received");
+    //    printEventPacket();
+        eventPacketArrived = true;
         controlHandleEvent(rcEventPacket.data.eventId);
     }
 

@@ -18,11 +18,29 @@
 
 #include <Arduino.h>
 #include "packets.h"
+#include "debug_config.h"
 
-void printStatePacket();
-void printEventPacket();
 void printPanelPacket();
 void printIndicatorPacket();
-void printPlotPacket();
+
+#if DBG_STICKS
+void debugStickLX();
+void debugStickLY();
+void debugStickRX();
+void debugStickRY();
+#endif
+
+#if DBG_KNOBS
+void debugKnobL();
+void debugKnobR();
+#endif
+
+#if DBG_SWITCHES
+void debugSwitches();
+#endif
+
+#if DBG_EVENTS
+void printEventPacketOnPress();
+#endif
 
 #endif

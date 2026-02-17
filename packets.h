@@ -117,4 +117,7 @@ typedef struct {
 } I2CPacket;
 
 extern I2CPacket i2cPacket;
+
+extern volatile bool eventPacketArrived;
+
 #endif
