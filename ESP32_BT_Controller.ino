@@ -60,6 +60,8 @@ void loop() {
   inputUpdate();
   sendI2CTelemetry();
 
+  readPanelFromSerial();
+
 #if DBG_STICKS
   debugStickLX();
   debugStickLY();
