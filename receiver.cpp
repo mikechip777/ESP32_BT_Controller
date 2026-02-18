@@ -38,19 +38,15 @@
 void handleBluetooth() {
     static byte buffer[RX_BUFFER_SIZE];
     static int bytesRead = 0;
-
-    // --- Read incoming Bluetooth bytes ---
     while (SerialBT.available()) {
         if (bytesRead < RX_BUFFER_SIZE) {
             buffer[bytesRead++] = SerialBT.read();
         } else {
-            // shift buffer if full
             memmove(buffer, buffer + 1, RX_BUFFER_SIZE - 1);
             buffer[RX_BUFFER_SIZE - 1] = SerialBT.read();
         }
     }
 
-    // --- Process packets in buffer ---
     while (true) {
     int packetStart = -1;
     int packetType = 0; // 1 = STATE, 2 = EVENT
@@ -80,13 +76,9 @@ void handleBluetooth() {
 
     if (packetType == 1) {
         memcpy(rcStatePacket.bytes, &buffer[packetStart], STATE_PACKET_SIZE);
-   //     Serial.println("State packet received");
-   //     printStatePacket();
     }
     else if (packetType == 2) {
         memcpy(rcEventPacket.bytes, &buffer[packetStart], EVENT_PACKET_SIZE);
-   //     Serial.println("Event packet received");
-    //    printEventPacket();
         eventPacketArrived = true;
         controlHandleEvent(rcEventPacket.data.eventId);
     }

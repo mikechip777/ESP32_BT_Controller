@@ -15,4 +15,15 @@
   #define DBG_EVENTS   0
 #endif
 
+/* =====================================================
+   DEBUG TELEMETRY MODES
+   ===================================================== */
+// set ONE of these to 1, others to 0
+#define DBG_NONE        0
+#define DBG_PANEL      0
+#define DBG_INDICATOR  1
+
+#define DEBUG_MODE  DBG_INDICATOR   // <<< change here
+
+
 #endif

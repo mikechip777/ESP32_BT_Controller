@@ -27,31 +27,22 @@
 #include "packets.h"
 #include "telemetry.h"
 #include "pins.h"
-
-/* =====================================================
-   DEBUG MODES
-   ===================================================== */
-// set ONE of these to 1, others to 0
-#define DBG_NONE        0
-#define DBG_PANEL      0
-#define DBG_INDICATOR  1
-
-#define DEBUG_MODE  DBG_INDICATOR   // <<< change here
+#include "debug_config.h"
 
 /* =====================================================
    TIMING
    ===================================================== */
 const unsigned long indicatorInterval = 500;
-const unsigned long plotInterval      = 50;
+const unsigned long plotInterval = 50;
 
-const unsigned long resendWindow   = 300; // ms
-const unsigned long resendInterval = 100; // ms
+const unsigned long resendWindow = 300;    // ms
+const unsigned long resendInterval = 100;  // ms
 
 /* =====================================================
    STATE
    ===================================================== */
 static unsigned long lastIndicatorSend = 0;
-static unsigned long lastPlotSend      = 0;
+static unsigned long lastPlotSend = 0;
 
 static uint16_t lastPanelL = 0;
 static uint16_t lastPanelR = 0;
@@ -179,7 +170,7 @@ void sendTelemetryIfDue() {
 
     panelPacket.header1 = 0xCC;
     panelPacket.header2 = 0x11;
-    panelPacket.leftPanelValue  = pendingL;
+    panelPacket.leftPanelValue = pendingL;
     panelPacket.rightPanelValue = pendingR;
     panelPacket.panelStates = 0x07;
 
@@ -203,10 +194,10 @@ void sendTelemetryIfDue() {
     indicatorPacket.header2 = 0x22;
 
 #if DEBUG_MODE == DBG_INDICATOR
-    indicatorPacket.analogValue  = dbgIndicatorValue;
+    indicatorPacket.analogValue = dbgIndicatorValue;
     indicatorPacket.batteryLevel = dbgBatteryValue;
 #else
-    indicatorPacket.analogValue  = map(analogRead(PIN_A36), 0, 4095, 0, 100);
+    indicatorPacket.analogValue = map(analogRead(PIN_A36), 0, 4095, 0, 100);
     indicatorPacket.batteryLevel = map(analogRead(PIN_A39), 0, 4095, 0, 100);
 #endif
 
