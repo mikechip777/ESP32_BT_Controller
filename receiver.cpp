@@ -30,7 +30,7 @@
 #include "bluetooth.h"
 #include "packets.h"
 #include "receiver.h"
-//#include "debug.h"
+#include "debug.h"
 #include "control.h"
 
 #define RX_BUFFER_SIZE 64

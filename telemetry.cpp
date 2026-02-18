@@ -20,6 +20,7 @@
   This module is WRITE-ONLY.
   It never parses incoming data.
 */
+
 #include <Arduino.h>
 #include <math.h>
 #include "bluetooth.h"
@@ -27,58 +28,105 @@
 #include "telemetry.h"
 #include "pins.h"
 
-static unsigned long lastPanelSend = 0;
+/* =====================================================
+   DEBUG MODES
+   ===================================================== */
+// set ONE of these to 1, others to 0
+#define DBG_NONE        0
+#define DBG_PANEL      0
+#define DBG_INDICATOR  1
+
+#define DEBUG_MODE  DBG_INDICATOR   // <<< change here
+
+/* =====================================================
+   TIMING
+   ===================================================== */
+const unsigned long indicatorInterval = 500;
+const unsigned long plotInterval      = 50;
+
+const unsigned long resendWindow   = 300; // ms
+const unsigned long resendInterval = 100; // ms
+
+/* =====================================================
+   STATE
+   ===================================================== */
 static unsigned long lastIndicatorSend = 0;
-static unsigned long lastPlotSend = 0;
+static unsigned long lastPlotSend      = 0;
 
-uint16_t lastPanelL = 0;
-uint16_t lastPanelR = 0;
+static uint16_t lastPanelL = 0;
+static uint16_t lastPanelR = 0;
 
-uint16_t pendingL = 0;
-uint16_t pendingR = 0;
+static uint16_t pendingL = 0;
+static uint16_t pendingR = 0;
+static unsigned long panelRetryUntil = 0;
+static unsigned long lastPanelTx = 0;
 
-unsigned long panelRetryUntil = 0;
-unsigned long lastPanelTx = 0;
-
-const unsigned long resendWindow = 300;
-const unsigned long resendInterval = 100;
-
-const long indicatorInterval = 250;
-const long plotInterval = 50;
-
-const char* plotNames[] = { "Volts", "Amps", "RPMs" };
-const int NUM_PLOT_NAMES = 3;
-
+/* =====================================================
+   DEBUG VALUES
+   ===================================================== */
+#if DEBUG_MODE == DBG_PANEL
 uint16_t dbgLeft = 0;
 uint16_t dbgRight = 0;
-bool dbgPanelMode = true;  // true = use Serial input
+#endif
 
-bool panelChanged(uint16_t l, uint16_t r) {
+#if DEBUG_MODE == DBG_INDICATOR
+uint8_t dbgIndicatorValue = 0;
+uint8_t dbgBatteryValue = 0;
+#endif
+
+/* =====================================================
+   HELPERS
+   ===================================================== */
+static bool panelChanged(uint16_t l, uint16_t r) {
   return (l != lastPanelL || r != lastPanelR);
 }
 
-void readPanelFromSerial() {
-  if (Serial.available()) {
-    String line = Serial.readStringUntil('\n');
-    line.trim();
-
-    int comma = line.indexOf(',');
-    if (comma > 0) {
-      int l = line.substring(0, comma).toInt();
-      int r = line.substring(comma + 1).toInt();
-
-      if (l >= 0 && l <= 9999 && r >= 0 && r <= 9999) {
-        dbgLeft = l;
-        dbgRight = r;
-        Serial.printf("Panel set: L=%u R=%u\n", dbgLeft, dbgRight);
-      } else {
-        Serial.println("Range must be 0–9999");
-      }
-    } else {
-      Serial.println("Format: left,right   (e.g. 1234,5678)");
-    }
-  }
+static void computeChecksum(void* pkt, uint8_t size) {
+  byte* b = (byte*)pkt;
+  byte c = 0;
+  for (int i = 2; i < size - 1; i++) c += b[i];
+  b[size - 1] = c;
 }
+
+/* =====================================================
+   SERIAL DEBUG INPUT
+   ===================================================== */
+#if DEBUG_MODE != DBG_NONE
+static void readDebugFromSerial() {
+  if (!Serial.available()) return;
+
+  String line = Serial.readStringUntil('\n');
+  line.trim();
+
+  int comma = line.indexOf(',');
+  if (comma < 0) return;
+
+#if DEBUG_MODE == DBG_PANEL
+  int l = line.substring(0, comma).toInt();
+  int r = line.substring(comma + 1).toInt();
+  if (l >= 0 && l <= 9999 && r >= 0 && r <= 9999) {
+    dbgLeft = l;
+    dbgRight = r;
+    Serial.printf("Panel debug set: %u , %u\n", l, r);
+  }
+
+#elif DEBUG_MODE == DBG_INDICATOR
+  int a = line.substring(0, comma).toInt();
+  int b = line.substring(comma + 1).toInt();
+  if (a >= 0 && a <= 100 && b >= 0 && b <= 100) {
+    dbgIndicatorValue = a;
+    dbgBatteryValue = b;
+    Serial.printf("Indicator debug set: %u%% , %u%%\n", a, b);
+  }
+#endif
+}
+#endif
+
+/* =====================================================
+   CONFIG TELEMETRY
+   ===================================================== */
+const char* plotNames[] = { "Volts", "Amps", "RPMs" };
+const int NUM_PLOT_NAMES = 3;
 
 void sendConfigTelemetry() {
   byte buf[128];
@@ -95,22 +143,32 @@ void sendConfigTelemetry() {
   if (SerialBT.hasClient()) SerialBT.write(buf, idx);
 }
 
+/* =====================================================
+   MAIN TELEMETRY LOOP
+   ===================================================== */
 void sendTelemetryIfDue() {
-  unsigned long t = millis();
-  if (!SerialBT.hasClient()) return;
 
+  if (!SerialBT.hasClient()) return;
+  unsigned long t = millis();
+
+#if DEBUG_MODE != DBG_NONE
+  readDebugFromSerial();
+#endif
+
+  /* ---------- PANEL ---------- */
   uint16_t newL, newR;
-  if (dbgPanelMode) {
-    newL = dbgLeft;
-    newR = dbgRight;
-  } else {
-    newL = map(analogRead(PIN_A34), 0, 4095, 0, 9999);
-    newR = map(analogRead(PIN_A35), 0, 4095, 0, 9999);
-  }
+
+#if DEBUG_MODE == DBG_PANEL
+  newL = dbgLeft;
+  newR = dbgRight;
+#else
+  newL = map(analogRead(PIN_A34), 0, 4095, 0, 9999);
+  newR = map(analogRead(PIN_A35), 0, 4095, 0, 9999);
+#endif
 
   unsigned long now = millis();
 
-  if(panelChanged(newL, newR)){
+  if (panelChanged(newL, newR)) {
     pendingL = newL;
     pendingR = newR;
     panelRetryUntil = now + resendWindow;
@@ -121,46 +179,53 @@ void sendTelemetryIfDue() {
 
     panelPacket.header1 = 0xCC;
     panelPacket.header2 = 0x11;
-    panelPacket.leftPanelValue = pendingL;
+    panelPacket.leftPanelValue  = pendingL;
     panelPacket.rightPanelValue = pendingR;
-    panelPacket.panelStates = 0x07;  // both on
+    panelPacket.panelStates = 0x07;
 
-    byte c = 0;
-    for (int i = 2; i < PANEL_PACKET_SIZE - 1; i++)
-      c += ((byte*)&panelPacket)[i];
-
-    panelPacket.checksum = c;
-
+    computeChecksum(&panelPacket, PANEL_PACKET_SIZE);
     SerialBT.write((byte*)&panelPacket, PANEL_PACKET_SIZE);
 
     lastPanelTx = now;
   }
 
-  if(now >= panelRetryUntil && panelRetryUntil != 0){
+  if (now >= panelRetryUntil && panelRetryUntil != 0) {
     lastPanelL = pendingL;
     lastPanelR = pendingR;
     panelRetryUntil = 0;
   }
 
+  /* ---------- INDICATOR ---------- */
   if (t - lastIndicatorSend > indicatorInterval) {
     lastIndicatorSend = t;
-    indicatorPacket = { 0xCC, 0x22, 75, 98, 0 };
-    byte c = 0;
-    for (int i = 2; i < INDICATOR_PACKET_SIZE - 1; i++) c += ((byte*)&indicatorPacket)[i];
-    indicatorPacket.checksum = c;
+
+    indicatorPacket.header1 = 0xCC;
+    indicatorPacket.header2 = 0x22;
+
+#if DEBUG_MODE == DBG_INDICATOR
+    indicatorPacket.analogValue  = dbgIndicatorValue;
+    indicatorPacket.batteryLevel = dbgBatteryValue;
+#else
+    indicatorPacket.analogValue  = map(analogRead(PIN_A36), 0, 4095, 0, 100);
+    indicatorPacket.batteryLevel = map(analogRead(PIN_A39), 0, 4095, 0, 100);
+#endif
+
+    computeChecksum(&indicatorPacket, INDICATOR_PACKET_SIZE);
     SerialBT.write((byte*)&indicatorPacket, INDICATOR_PACKET_SIZE);
   }
 
+  /* ---------- PLOT ---------- */
   if (t - lastPlotSend > plotInterval) {
     lastPlotSend = t;
+
     float s = t / 1000.0f;
     plotPacket = { 0xCC, 0x33, 3,
                    (byte)(((sin(s) * 0.4) + 0.6) * 255),
                    (byte)(((cos(s) * 0.2) + 0.25) * 255),
-                   (byte)(((cos(s) * 0.2) + 0.5) * 255), 0 };
-    byte c = 0;
-    for (int i = 2; i < PLOT_PACKET_SIZE - 1; i++) c += ((byte*)&plotPacket)[i];
-    plotPacket.checksum = c;
+                   (byte)(((cos(s) * 0.2) + 0.5) * 255),
+                   0 };
+
+    computeChecksum(&plotPacket, PLOT_PACKET_SIZE);
     SerialBT.write((byte*)&plotPacket, PLOT_PACKET_SIZE);
   }
 }

@@ -51,6 +51,7 @@ void setup() {
                 STATE_PACKET_SIZE, EVENT_PACKET_SIZE);
   controlInit();
   i2cInit();
+  sendConfigTelemetry();
 }
 
 void loop() {
@@ -59,8 +60,6 @@ void loop() {
   controlUpdate();
   inputUpdate();
   sendI2CTelemetry();
-
-  readPanelFromSerial();
 
 #if DBG_STICKS
   debugStickLX();
