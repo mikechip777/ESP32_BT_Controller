@@ -20,4 +20,5 @@
 #define TELEMETRY_H
 void sendTelemetryIfDue();
 void sendConfigTelemetry();
+void readPlotFromSerial();
 #endif

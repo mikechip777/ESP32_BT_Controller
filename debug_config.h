@@ -16,14 +16,15 @@
 #endif
 
 /* =====================================================
-   DEBUG TELEMETRY MODES
+   DEBUG TELEMETY MODES
    ===================================================== */
-// set ONE of these to 1, others to 0
+
 #define DBG_NONE        0
-#define DBG_PANEL      0
-#define DBG_INDICATOR  1
+#define DBG_PANEL       1
+#define DBG_INDICATOR   2
+#define DBG_PLOT        3
 
-#define DEBUG_MODE  DBG_INDICATOR   // <<< change here
-
+// Select exactly one:
+#define DEBUG_MODE DBG_PLOT
 
 #endif
