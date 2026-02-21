@@ -1,9 +1,13 @@
 #ifndef DEBUG_CONFIG_H
 #define DEBUG_CONFIG_H
 
-#define DEBUG_MODE 0   // 1 = debug ON, 0 = debug OFF
+/* =====================================================
+   GENERAL DEBUG ENABLE
+   ===================================================== */
 
-#if DEBUG_MODE
+#define DEBUG_ENABLED 1   // 1 = debug ON, 0 = debug OFF
+
+#if DEBUG_ENABLED
   #define DBG_STICKS   1
   #define DBG_KNOBS    1
   #define DBG_SWITCHES 1
@@ -15,8 +19,9 @@
   #define DBG_EVENTS   0
 #endif
 
+
 /* =====================================================
-   DEBUG TELEMETY MODES
+   TELEMETRY DEBUG MODES
    ===================================================== */
 
 #define DBG_NONE        0
@@ -24,7 +29,7 @@
 #define DBG_INDICATOR   2
 #define DBG_PLOT        3
 
-// Select exactly one:
-#define DEBUG_MODE DBG_PLOT
+// Select exactly one telemetry mode:
+#define TELEMETRY_DEBUG_MODE DBG_PLOT
 
 #endif

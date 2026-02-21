@@ -28,7 +28,7 @@ static uint16_t lastKnobR = 0;
 static uint8_t lastEventId = 0;
 
 static byte lastSwitches = 0xFF;
-
+static uint8_t lastEventIdPrint = 0;
 /* ---------- STICKS ---------- */
 #if DBG_STICKS
 void debugStickLX() {
@@ -101,14 +101,30 @@ void debugSwitches() {
 
     for (int i = 0; i < 6; i++) {
       Serial.printf("  S%d = %s\n",
-        i + 1,
-        (s & (1 << i)) ? "ON" : "OFF");
+                    i + 1,
+                    (s & (1 << i)) ? "ON" : "OFF");
     }
 
     lastSwitches = s;
   }
 }
 #endif
+
+void printEventPacketOnPress() {
+  uint8_t v = rcEventPacket.data.eventId;
+
+  if (!eventPacketArrived)
+    return;
+
+  eventPacketArrived = false;  // consume event
+
+  // Print every time an event packet arrives
+  Serial.println("\n--- EVENT PACKET (PRESS) ---");
+  Serial.printf("Event ID: 0x%02X\n", v);
+  Serial.printf("Checksum: 0x%02X\n", rcEventPacket.data.checksum);
+  Serial.println("----------------------------");
+
+}
 
 // ----------------------------------------------------
 // printPanelPacket()
@@ -146,5 +162,3 @@ void printIndicatorPacket() {
 
   Serial.printf("Checksum: %u\n", indicatorPacket.checksum);
 }
-
-
