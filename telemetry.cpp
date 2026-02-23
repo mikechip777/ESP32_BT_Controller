@@ -22,16 +22,16 @@
    ===================================================== */
 
 const unsigned long indicatorInterval = 500;
-const unsigned long plotInterval      = 50;
-const unsigned long resendWindow      = 300;
-const unsigned long resendInterval    = 100;
+const unsigned long plotInterval = 50;
+const unsigned long resendWindow = 300;
+const unsigned long resendInterval = 100;
 
 /* =====================================================
    STATE
    ===================================================== */
 
 static unsigned long lastIndicatorSend = 0;
-static unsigned long lastPlotSend      = 0;
+static unsigned long lastPlotSend = 0;
 
 static uint16_t lastPanelL = 0;
 static uint16_t lastPanelR = 0;
@@ -40,7 +40,7 @@ static uint16_t pendingL = 0;
 static uint16_t pendingR = 0;
 
 static unsigned long panelRetryUntil = 0;
-static unsigned long lastPanelTx     = 0;
+static unsigned long lastPanelTx = 0;
 
 static bool configSent = false;
 
@@ -50,12 +50,12 @@ static bool configSent = false;
 
 void sendConfigTelemetry() {
 
-  const char* plotNames[]      = { "Volts", "Amps", "RPMs" };
-  const char* panelNames[]     = { "Left", "Right" };
+  const char* plotNames[] = { "Volts", "Amps", "RPMs" };
+  const char* panelNames[] = { "Left", "Right" };
   const char* indicatorNames[] = { "Throttle", "Battery" };
 
-  const uint8_t plotCount      = 3;
-  const uint8_t panelCount     = 2;
+  const uint8_t plotCount = 3;
+  const uint8_t panelCount = 2;
   const uint8_t indicatorCount = 2;
 
   byte buf[200];
@@ -69,7 +69,7 @@ void sendConfigTelemetry() {
   buf[idx++] = 0;
   buf[idx++] = 0;
 
-  buf[idx++] = 3; // number of sections
+  buf[idx++] = 3;  // number of sections
 
   // ---------- PLOT SECTION ----------
   buf[idx++] = 0x01;
@@ -106,7 +106,7 @@ void sendConfigTelemetry() {
 
   // Compute payload length (everything after header+length until checksum)
   uint16_t payloadLength = idx - 4;
-  buf[lengthIndex]     = payloadLength & 0xFF;
+  buf[lengthIndex] = payloadLength & 0xFF;
   buf[lengthIndex + 1] = (payloadLength >> 8) & 0xFF;
 
   // Compute checksum (from byte 2 to last payload byte)
@@ -179,9 +179,9 @@ void sendTelemetryIfDue() {
 
     panelPacket.header1 = 0xCC;
     panelPacket.header2 = 0x11;
-    panelPacket.leftPanelValue  = pendingL;
+    panelPacket.leftPanelValue = pendingL;
     panelPacket.rightPanelValue = pendingR;
-    panelPacket.panelStates     = 0b00000111; // example state bits
+    panelPacket.panelStates = 0b00000111;  // example state bits
 
     computeChecksum(&panelPacket, PANEL_PACKET_SIZE);
     SerialBT.write((byte*)&panelPacket, PANEL_PACKET_SIZE);
@@ -204,7 +204,7 @@ void sendTelemetryIfDue() {
     indicatorPacket.header1 = 0xCC;
     indicatorPacket.header2 = 0x22;
 
-    indicatorPacket.analogValue  = getIndicatorAnalog();
+    indicatorPacket.analogValue = getIndicatorAnalog();
     indicatorPacket.batteryLevel = getIndicatorBattery();
 
     computeChecksum(&indicatorPacket, INDICATOR_PACKET_SIZE);
@@ -221,9 +221,31 @@ void sendTelemetryIfDue() {
     uint8_t v2 = getPlot2();
     uint8_t v3 = getPlot3();
 
-    plotPacket = { 0xCC, 0x33, 3, v1, v2, v3, 0 };
+    byte buf[16];
+    int idx = 0;
 
-    computeChecksum(&plotPacket, PLOT_PACKET_SIZE);
-    SerialBT.write((byte*)&plotPacket, PLOT_PACKET_SIZE);
+    buf[idx++] = 0xCC;
+    buf[idx++] = 0x33;
+
+    int lengthIndex = idx;
+    buf[idx++] = 0;  // len low
+    buf[idx++] = 0;  // len high
+
+    buf[idx++] = 3;  // count
+    buf[idx++] = v1;
+    buf[idx++] = v2;
+    buf[idx++] = v3;
+
+    uint16_t payloadLength = idx - 4;
+    buf[lengthIndex] = payloadLength & 0xFF;
+    buf[lengthIndex + 1] = (payloadLength >> 8) & 0xFF;
+
+    uint8_t checksum = 0;
+    for (int i = 2; i < idx; i++)
+      checksum += buf[i];
+
+    buf[idx++] = checksum;
+
+    SerialBT.write(buf, idx);
   }
 }
