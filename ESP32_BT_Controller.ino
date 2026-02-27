@@ -35,8 +35,9 @@
 #include "telemetry.h"
 #include "receiver.h"
 #include "debug.h"
-#include "control.h"
+#include "board_init.h"
 #include "input.h"
+#include "control.h"
 #include "i2c_sensors.h"
 #include "debug_config.h"
 
@@ -49,7 +50,7 @@ void setup() {
   Serial.println("ESP32 Bluetooth Receiver Ready.");
   Serial.printf("Listening for State (%d) and Event (%d)\n",
                 STATE_PACKET_SIZE, EVENT_PACKET_SIZE);
-  controlInit();
+  boardInit();
   i2cInit();
 }
 

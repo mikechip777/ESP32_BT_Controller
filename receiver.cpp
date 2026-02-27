@@ -36,57 +36,55 @@
 #define RX_BUFFER_SIZE 64
 
 void handleBluetooth() {
-    static byte buffer[RX_BUFFER_SIZE];
-    static int bytesRead = 0;
-    while (SerialBT.available()) {
-        if (bytesRead < RX_BUFFER_SIZE) {
-            buffer[bytesRead++] = SerialBT.read();
-        } else {
-            memmove(buffer, buffer + 1, RX_BUFFER_SIZE - 1);
-            buffer[RX_BUFFER_SIZE - 1] = SerialBT.read();
-        }
+  static byte buffer[RX_BUFFER_SIZE];
+  static int bytesRead = 0;
+  while (SerialBT.available()) {
+    if (bytesRead < RX_BUFFER_SIZE) {
+      buffer[bytesRead++] = SerialBT.read();
+    } else {
+      memmove(buffer, buffer + 1, RX_BUFFER_SIZE - 1);
+      buffer[RX_BUFFER_SIZE - 1] = SerialBT.read();
     }
+  }
 
-    while (true) {
+  while (true) {
     int packetStart = -1;
-    int packetType = 0; // 1 = STATE, 2 = EVENT
+    int packetType = 0;  // 1 = STATE, 2 = EVENT
 
     for (int i = 0; i <= bytesRead - 2; i++) {
 
-        // --- STATE packet header ---
-        if (buffer[i] == 0xAA && buffer[i + 1] == 0x55) {
-            if (bytesRead - i >= STATE_PACKET_SIZE) {
-                packetStart = i;
-                packetType = 1;
-                break;
-            }
+      // --- STATE packet header ---
+      if (buffer[i] == 0xAA && buffer[i + 1] == 0x55) {
+        if (bytesRead - i >= STATE_PACKET_SIZE) {
+          packetStart = i;
+          packetType = 1;
+          break;
         }
+      }
 
-        // --- EVENT packet header ---
-        if (buffer[i] == 0xBB && buffer[i + 1] == 0x66) {
-            if (bytesRead - i >= EVENT_PACKET_SIZE) {
-                packetStart = i;
-                packetType = 2;
-                break;
-            }
+      // --- EVENT packet header ---
+      if (buffer[i] == 0xBB && buffer[i + 1] == 0x66) {
+        if (bytesRead - i >= EVENT_PACKET_SIZE) {
+          packetStart = i;
+          packetType = 2;
+          break;
         }
+      }
     }
 
     if (packetStart == -1) break;
 
     if (packetType == 1) {
-        memcpy(rcStatePacket.bytes, &buffer[packetStart], STATE_PACKET_SIZE);
-    }
-    else if (packetType == 2) {
-        memcpy(rcEventPacket.bytes, &buffer[packetStart], EVENT_PACKET_SIZE);
-        eventPacketArrived = true;
-        controlHandleEvent(rcEventPacket.data.eventId);
+      memcpy(rcStatePacket.bytes, &buffer[packetStart], STATE_PACKET_SIZE);
+    } else if (packetType == 2) {
+      memcpy(rcEventPacket.bytes, &buffer[packetStart], EVENT_PACKET_SIZE);
+      eventPacketArrived = true;
+      controlHandleEvent(rcEventPacket.data.eventId);
     }
 
-    int removeCount = packetStart +
-        (packetType == 1 ? STATE_PACKET_SIZE : EVENT_PACKET_SIZE);
+    int removeCount = packetStart + (packetType == 1 ? STATE_PACKET_SIZE : EVENT_PACKET_SIZE);
 
     memmove(buffer, buffer + removeCount, bytesRead - removeCount);
     bytesRead -= removeCount;
-}
+  }
 }

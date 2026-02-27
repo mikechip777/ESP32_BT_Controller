@@ -112,7 +112,7 @@ uint16_t getPanelLeft() {
   return 0;  // fixed during plot debug
 
 #else
-  return map(analogRead(PIN_A34), 0, 4095, 0, 9999);
+  return map(analogRead(PIN_NUMERIC1), 0, 4095, 0, 9999);
 #endif
 }
 
@@ -125,7 +125,7 @@ uint16_t getPanelRight() {
   return 0;
 
 #else
-  return map(analogRead(PIN_A35), 0, 4095, 0, 9999);
+  return map(analogRead(PIN_NUMERIC2), 0, 4095, 0, 9999);
 #endif
 }
 
@@ -143,7 +143,7 @@ uint8_t getIndicatorAnalog() {
   return 50;
 
 #else
-  return map(analogRead(PIN_A36), 0, 4095, 0, 100);
+  return map(analogRead(PIN_ANALOG_IND1), 0, 4095, 0, 100);
 #endif
 }
 
@@ -156,7 +156,7 @@ uint8_t getIndicatorBattery() {
   return 75;
 
 #else
-  return map(analogRead(PIN_A39), 0, 4095, 0, 100);
+  return map(analogRead(PIN_ANALOG_IND2), 0, 4095, 0, 100);
 #endif
 }
 
@@ -170,7 +170,7 @@ uint8_t getPlot1() {
 #if TELEMETRY_DEBUG_MODE == DBG_PLOT
   return dbgPlot1;
 #else
-  return map(analogRead(PIN_A34), 0, 4095, 0, 255);
+  return map(analogRead(PIN_ANALOG1), 0, 4095, 0, 255);
 #endif
 }
 
@@ -179,7 +179,7 @@ uint8_t getPlot2() {
 #if TELEMETRY_DEBUG_MODE == DBG_PLOT
   return dbgPlot2;
 #else
-  return map(analogRead(PIN_A35), 0, 4095, 0, 255);
+  return map(analogRead(PIN_ANALOG2), 0, 4095, 0, 255);
 #endif
 }
 
@@ -188,7 +188,7 @@ uint8_t getPlot3() {
 #if TELEMETRY_DEBUG_MODE == DBG_PLOT
   return dbgPlot3;
 #else
-  return map(analogRead(PIN_A32), 0, 4095, 0, 255);
+  return map(analogRead(PIN_ANALOG3), 0, 4095, 0, 255);
 #endif
 }
 

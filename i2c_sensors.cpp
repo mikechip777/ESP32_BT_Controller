@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include "packets.h"
 #include "bluetooth.h"
+#include "pins.h"
 
 #define I2C_ADDR_TEMP 0x48
 #define I2C_ADDR_IMU  0x68
@@ -10,7 +11,7 @@ static unsigned long lastSend = 0;
 const unsigned long i2cInterval = 100;
 
 void i2cInit() {
-  Wire.begin(21,22);
+  Wire.begin(PIN_I2C_SDA,PIN_I2C_SCL);
 }
 
 uint16_t readTemp() {
