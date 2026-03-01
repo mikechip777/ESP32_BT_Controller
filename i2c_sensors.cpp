@@ -10,10 +10,6 @@
 static unsigned long lastSend = 0;
 const unsigned long i2cInterval = 100;
 
-void i2cInit() {
-  Wire.begin(PIN_I2C_SDA,PIN_I2C_SCL);
-}
-
 uint16_t readTemp() {
   Wire.beginTransmission(I2C_ADDR_TEMP);
   Wire.write(0);

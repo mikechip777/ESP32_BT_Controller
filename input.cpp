@@ -7,9 +7,6 @@
 static unsigned long lastSend = 0;
 const unsigned long inputInterval = 50;
 
-void inputInit() {
-
-}
 
 void inputUpdate() {
   if (!SerialBT.hasClient()) return;

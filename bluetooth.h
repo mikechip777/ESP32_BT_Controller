@@ -21,15 +21,7 @@
 // Protege de inclusiones múltiples
 
 #include <BluetoothSerial.h>
-// Incluye la librería BluetoothSerial de ESP32
-// Permite la comunicación SPP (Serial Port Profile) en ESP32
-
 extern BluetoothSerial SerialBT;
-// Declaración del objeto global SerialBT (la instancia se define en el .ino o .cpp principal)
-// Permite usar SerialBT en varios archivos sin redefinirlo
-
 #define DEVICE_NAME "ESP32-BT"
-// Nombre que el ESP32 anunciará por Bluetooth
-// Visible desde Android u otros dispositivos Bluetooth
 
 #endif

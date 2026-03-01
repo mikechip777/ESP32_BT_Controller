@@ -52,7 +52,70 @@
 #endif
 /* ========================================================================================================== */
 
+#if PROJECT_MODE == FULL_RC_MODE_MCP
 
+/* =====================================================
+   I2C BUS (ESP32 <-> MCP23017)
+   ===================================================== */
+#define PIN_I2C_SDA 21
+#define PIN_I2C_SCL 22
+
+/* =====================================================
+   PWM OUTPUTS (6 total - direct from ESP32)
+   ===================================================== */
+#define PIN_PWM_STICK_LX 18
+#define PIN_PWM_STICK_LY 19
+#define PIN_PWM_STICK_RX 23
+#define PIN_PWM_STICK_RY 25
+#define PIN_PWM_KNOB_L   26
+#define PIN_PWM_KNOB_R   27
+
+/* =====================================================
+   ANALOG INPUTS (ADC1 SAFE WITH BT)
+   ===================================================== */
+#define PIN_NUMERIC1      32
+#define PIN_NUMERIC2      33
+#define PIN_ANALOG_IND1   34
+#define PIN_ANALOG_IND2   35
+
+/* =====================================================
+   MCP23017 DIGITAL ASSIGNMENTS
+   ===================================================== */
+
+/*
+   GPA0–GPA7  → 8 Digital Indicators (INPUTS)
+   GPB0–GPB5  → 6 Switch Outputs
+   GPB6–GPB7  → 2 Event Outputs
+*/
+#define GPA0   0
+#define GPA1   1
+#define GPA2   2
+#define GPA3   3
+#define GPA4   4
+#define GPA5   5
+#define GPA6   6
+#define GPA7   7
+
+#define GPB0   0
+#define GPB1   1
+#define GPB2   2
+#define GPB3   3
+#define GPB4   4
+#define GPB5   5
+#define GPB6   6
+#define GPB7   7
+
+#define MCP_ADDR 0x20
+
+#define PIN_FREE1 4
+#define PIN_FREE2 5
+#define PIN_FREE3 13
+#define PIN_FREE4 14
+#define PIN_FREE5 16
+#define PIN_FREE6 17
+
+
+#endif
 
 
 #if PROJECT_MODE == MODE_BASIC_RC

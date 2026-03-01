@@ -29,57 +29,18 @@
   ESP32 -> telemetry.cpp -> Bluetooth -> Android
 
 */
-#include <Arduino.h>
-#include "bluetooth.h"
-#include "packets.h"
-#include "telemetry.h"
-#include "receiver.h"
-#include "debug.h"
-#include "board_init.h"
-#include "input.h"
-#include "control.h"
-#include "i2c_sensors.h"
-#include "debug_config.h"
+#include "system_init.h"
+#include "pulse.h"
 
 void setup() {
-  Serial.begin(115200);
-  delay(1000);
-  Serial.println("Booting...");
-
-  SerialBT.begin(DEVICE_NAME);
-  Serial.println("ESP32 Bluetooth Receiver Ready.");
-  Serial.printf("Listening for State (%d) and Event (%d)\n",
-                STATE_PACKET_SIZE, EVENT_PACKET_SIZE);
-  boardInit();
-  i2cInit();
+  systemInit();
 }
 
 void loop() {
-  handleBluetooth();
-  sendTelemetryIfDue();
-  controlUpdate();
-  inputUpdate();
-  sendI2CTelemetry();
+  systemLoop();
+  pulseUpdate();
 
-#if DBG_STICKS
-  debugStickLX();
-  debugStickLY();
-  debugStickRX();
-  debugStickRY();
+#if USE_MCP23017
+  mcpPulseUpdate();
 #endif
-
-#if DBG_EVENTS
-  printEventPacketOnPress();
-#endif
-
-
-#if DBG_KNOBS
-  debugKnobL();
-  debugKnobR();
-#endif
-
-#if DBG_SWITCHES
-  debugSwitches();
-#endif
-
 }

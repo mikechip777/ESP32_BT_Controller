@@ -19,12 +19,13 @@ static void initFullRC() {
   pinMode(PIN_SW6, OUTPUT);
 
   // Ensure boot-sensitive pins start LOW
-  digitalWrite(PIN_SW5, LOW);   // GPIO12
-  digitalWrite(PIN_SW6, LOW);   // GPIO15
+  digitalWrite(PIN_SW5, LOW);  // GPIO12
+  digitalWrite(PIN_SW6, LOW);  // GPIO15
 
   /* ================= PWM OUTPUTS (6) ================= */
+
   const uint32_t pwmFreq = 1000;
-  const uint8_t pwmRes   = 12;
+  const uint8_t  pwmRes  = 12;
 
   ledcAttach(PIN_PWM_STICK_LX, pwmFreq, pwmRes);
   ledcAttach(PIN_PWM_STICK_LY, pwmFreq, pwmRes);
@@ -33,7 +34,16 @@ static void initFullRC() {
   ledcAttach(PIN_PWM_KNOB_L,   pwmFreq, pwmRes);
   ledcAttach(PIN_PWM_KNOB_R,   pwmFreq, pwmRes);
 
+  // Initialize PWM to 0 duty
+  ledcWrite(PIN_PWM_STICK_LX, 0);
+  ledcWrite(PIN_PWM_STICK_LY, 0);
+  ledcWrite(PIN_PWM_STICK_RX, 0);
+  ledcWrite(PIN_PWM_STICK_RY, 0);
+  ledcWrite(PIN_PWM_KNOB_L,   0);
+  ledcWrite(PIN_PWM_KNOB_R,   0);
+
   /* ================= DIGITAL INPUTS (4) ================= */
+
   pinMode(PIN_IND1, INPUT);
   pinMode(PIN_IND2, INPUT);
   pinMode(PIN_IND3, INPUT);
@@ -44,14 +54,74 @@ static void initFullRC() {
   // Do NOT enable INPUT_PULLUP here.
 
   /* ================= ANALOG INPUTS (ADC1) ================= */
-  pinMode(PIN_NUMERIC1, INPUT);
-  pinMode(PIN_NUMERIC2, INPUT);
+
+  analogReadResolution(12);        // 0–4095
+  analogSetAttenuation(ADC_11db);  // Recommended for full 0–3.3V range
+
+  pinMode(PIN_NUMERIC1,    INPUT);
+  pinMode(PIN_NUMERIC2,    INPUT);
   pinMode(PIN_ANALOG_IND1, INPUT);
   pinMode(PIN_ANALOG_IND2, INPUT);
-
-  // Optional but recommended for stability
-  analogReadResolution(12);   // 0–4095
 }
+
+/* ================= FULL RC MCP ================= */
+
+static void initFullRCMcp() {
+
+  /* =====================================================
+     NOTE:
+     - I2C is initialized in i2cBusInit()
+     - MCP23017 is initialized in mcpInit()
+     ===================================================== */
+
+  /* ================= PWM OUTPUTS (6) ================= */
+
+  const uint32_t pwmFreq = 1000;
+  const uint8_t  pwmRes  = 12;
+
+  ledcAttach(PIN_PWM_STICK_LX, pwmFreq, pwmRes);
+  ledcAttach(PIN_PWM_STICK_LY, pwmFreq, pwmRes);
+  ledcAttach(PIN_PWM_STICK_RX, pwmFreq, pwmRes);
+  ledcAttach(PIN_PWM_STICK_RY, pwmFreq, pwmRes);
+  ledcAttach(PIN_PWM_KNOB_L,   pwmFreq, pwmRes);
+  ledcAttach(PIN_PWM_KNOB_R,   pwmFreq, pwmRes);
+
+  // Initialize all PWM outputs to 0 duty
+  ledcWrite(PIN_PWM_STICK_LX, 0);
+  ledcWrite(PIN_PWM_STICK_LY, 0);
+  ledcWrite(PIN_PWM_STICK_RX, 0);
+  ledcWrite(PIN_PWM_STICK_RY, 0);
+  ledcWrite(PIN_PWM_KNOB_L,   0);
+  ledcWrite(PIN_PWM_KNOB_R,   0);
+
+  /* ================= ANALOG INPUTS (ADC1 ONLY) ================= */
+
+  analogReadResolution(12);        // 0–4095
+  analogSetAttenuation(ADC_11db);  // 0–3.3V range
+
+  pinMode(PIN_NUMERIC1,     INPUT);
+  pinMode(PIN_NUMERIC2,     INPUT);
+  pinMode(PIN_ANALOG_IND1,  INPUT);
+  pinMode(PIN_ANALOG_IND2,  INPUT);
+
+  /* ================= FREE GPIO (optional use) ================= */
+
+  pinMode(PIN_FREE1, OUTPUT);
+  pinMode(PIN_FREE2, OUTPUT);
+  pinMode(PIN_FREE3, OUTPUT);
+  pinMode(PIN_FREE4, OUTPUT);
+  pinMode(PIN_FREE5, OUTPUT);
+  pinMode(PIN_FREE6, OUTPUT);
+
+  digitalWrite(PIN_FREE1, LOW);
+  digitalWrite(PIN_FREE2, LOW);
+  digitalWrite(PIN_FREE3, LOW);
+  digitalWrite(PIN_FREE4, LOW);
+  digitalWrite(PIN_FREE5, LOW);
+  digitalWrite(PIN_FREE6, LOW);
+}
+
+
 
 /* ================= BASIC RC ================= */
 
@@ -92,6 +162,8 @@ void boardInit() {
 
 #if PROJECT_MODE == FULL_RC_MODE
   initFullRC();
+#elif PROJECT_MODE == FULL_RC_MODE
+  initFullRCMcp();
 #elif PROJECT_MODE == MODE_BASIC_RC
   initBasicRC();
 #elif PROJECT_MODE == MODE_SENSOR_NODE
@@ -99,5 +171,4 @@ void boardInit() {
 #elif PROJECT_MODE == MODE_MINIMAL
   initMinimal();
 #endif
-
 }
