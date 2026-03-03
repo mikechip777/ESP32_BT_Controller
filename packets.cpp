@@ -39,3 +39,13 @@ InputPacket inputPacket;
 I2CPacket i2cPacket;
 
 volatile bool eventPacketArrived = false;
+
+uint8_t calculateChecksum(const uint8_t* data, uint8_t size) {
+    uint8_t c = 0;
+
+    for (int i = 2; i < size - 1; i++) {
+        c += data[i];
+    }
+
+    return c;
+}

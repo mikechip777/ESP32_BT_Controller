@@ -120,4 +120,6 @@ extern I2CPacket i2cPacket;
 
 extern volatile bool eventPacketArrived;
 
+uint8_t calculateChecksum(const uint8_t* data, uint8_t size);
+
 #endif
